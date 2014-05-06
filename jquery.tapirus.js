@@ -59,7 +59,25 @@
 								// Add formatted date
 								if(typeof moment === 'function') this.date = moment(this.published_on).format(options.dateFormat);
 
-								var $dummy = $('<div></div>').html(Handlebars.compile(options.templates.result)(this));
+								var keywords = query.split(' ');
+								var lines = this.summary.split('\n');
+								var preview = [];
+								var appendLine = false;
+								lines.forEach(function(line) {
+									keywords.forEach(function(keyword) {
+										if (line.indexOf(keyword) > -1) {
+											line = line.replace(keyword,'<strong>' + keyword + '</strong>');
+											line = line.replace('<p>','').replace('</p>','').replace('<br>','').replace('<br/>','').replace('</br>','');
+											appendLine = true;
+										}
+								    });
+								    if (appendLine && preview.length < 3) {
+								    	preview[preview.length] = line;
+								    }
+								    appendLine = false;
+								});
+								this.snippet = preview.join(' ... ');
+								var $dummy = $('<div></div>').html(Handlebars.compile(options.templates.result, {noEscape: true})(this));
 
 								$element.append($dummy.html());
 							});
@@ -147,7 +165,7 @@
 
 					var deferred = $.Deferred();
 
-					query = (typeof queryFilter === 'function' ? queryFilter(query) : query.replace(/\W/g, ''));
+					query = (typeof queryFilter === 'function' ? queryFilter(query) : query);
 
 					// Empty
 					if(query === '') {
